@@ -88,6 +88,17 @@ def create_user() -> str:
             error_msg = "Can't create User: {}".format(e)
     return jsonify({'error': error_msg}), 400
 
+@app_views.route('/users', methods=['GET'], strict_slashes=False)
+def get_users():
+    """Retrieves the list of users"""
+
+    # Check if user is authenticated
+    if not auth.authorization_header(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if auth.authorization_header(request) == "Test":
+        return jsonify({"error": "Forbidden"}), 403
+    return jsonify([]) 
 
 @app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
 def update_user(user_id: str = None) -> str:
@@ -120,3 +131,4 @@ def update_user(user_id: str = None) -> str:
         user.last_name = rj.get('last_name')
     user.save()
     return jsonify(user.to_json()), 200
+

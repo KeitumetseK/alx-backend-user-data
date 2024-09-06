@@ -2,9 +2,8 @@
 
 from flask import request
 from typing import List, TypeVar
-from api.v1.auth.basic_auth import BasicAuth
 
-BasicAuth = auth
+
 
 class Auth:
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:

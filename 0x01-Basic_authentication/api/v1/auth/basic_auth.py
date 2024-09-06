@@ -12,7 +12,6 @@ class BasicAuth(Auth):
         return authorization_header.split(' ', 1)[1]
 
     def decode_base64_authorization_header(self, base64_authorization_header: str) -> str:
-        def decode_base64_authorization_header(self, base64_authorization_header: str) -> str:
         if base64_authorization_header is None or not isinstance(base64_authorization_header, str):
             return None
         try:
@@ -21,7 +20,7 @@ class BasicAuth(Auth):
         except Exception:
             return None
 
-     def extract_user_credentials(self, decoded_base64_authorization_header: str) -> (str, str):
+    def extract_user_credentials(self, decoded_base64_authorization_header: str) -> (str, str):
         if decoded_base64_authorization_header is None or not isinstance(decoded_base64_authorization_header, str):
             return None, None
         if ':' not in decoded_base64_authorization_header:
@@ -39,7 +38,7 @@ class BasicAuth(Auth):
             return None
         return user[0]
 
-     def current_user(self, request=None) -> User:
+    def current_user(self, request=None) -> User:
         auth_header = self.authorization_header(request)
         if not auth_header:
             return None
@@ -70,9 +69,8 @@ class BasicAuth(Auth):
             if excluded_path.endswith('*'):
                 if path.startswith(excluded_path[:-1]):
                     return False
-        elif path == excluded_path:
-            return False
+            elif path == excluded_path:
+                return False
 
         return True
 
-    

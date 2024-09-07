@@ -9,6 +9,7 @@ from flask_cors import (CORS, cross_origin)
 import os
 from api.v1.auth.auth import Auth
 from api.v1.auth.basic_auth import BasicAuth
+from typing import Literal
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
@@ -16,6 +17,13 @@ CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 auth = None
 AUTH_TYPE = os.getenv('AUTH_TYPE')
 
+if getenv('AUTH_TYPE') == 'auth':
+    from api.v1.auth.auth import Auth
+    auth = Auth()
+
+if getenv('AUTH_TYPE') == 'basic_auth':
+    from api.v1.auth.basic_auth import BasicAuth
+    auth = BasicAuth()
 
 @app.errorhandler(404)
 def not_found(error) -> str:
@@ -24,16 +32,17 @@ def not_found(error) -> str:
     return jsonify({"error": "Not found"}), 404
 
 @app.errorhandler(401)
-def unauthorized(error) -> str:
+def unauthorized(error) -> tuple[str, Literal[401]]:
     """ Not authorized handler
     """
     return jsonify ({"error": "Unauthorized"}), 401
 
 @app.errorhandler(403)
-def forbidden(error) -> str:
+def forbidden(error) -> tuple[str, Literal[403]]:
     """ not allowed access to resource
     """
     return jsonify ({"error": "forbidden"}), 403
+
 @app.before_request
 def before_request():
     """ Method to filter requests before processing """
@@ -41,31 +50,24 @@ def before_request():
         return
 
     # Paths that don't require authentication
-    excluded_paths = ['/api/v1/status/', '/api/v1/unauthorized/', '/api/v1/forbidden/']
+    Allowed_paths = ['/api/v1/status/', '/api/v1/unauthorized/', '/api/v1/forbidden/']
+    
+    if auth is None:
+        return
 
-    if not auth.require_auth(request.path, excluded_paths):
+    if not auth.require_auth(request.path, allowed_paths):
         return
 
     if auth.authorization_header(request) is None:
-        return jsonify (abort(401))  # Unauthorized
+        return abort(401)  # Unauthorized
 
     if auth.current_user(request) is None:
-        return jsonify (abort(403))  # Forbidden
+        return abort(403)  # Forbidden
 
 if __name__ == "__main__":
     host = getenv("API_HOST", "0.0.0.0")
     port = getenv("API_PORT", "5000")
     app.run(host=host, port=port)
-
-if AUTH_TYPE == 'auth':
-    from api.v1.auth.auth import Auth
-    auth = Auth()
-
-# Determine the authentication type
-if getenv("AUTH_TYPE") == "basic_auth":
-    auth = BasicAuth()
-else:
-    auth = Auth()
 
 @app.route('/api/v1/status', methods=['GET'])
 def status():
